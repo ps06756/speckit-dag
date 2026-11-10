@@ -82,14 +82,30 @@ Spec Kit-specific, so other planners can produce the same file.
 ```json
 {
   "version": 1,
+  "unit": "task",
   "feature": "User Authentication",
-  "source": "examples/tasks.md",
-  "groups": [{ "id": "US1", "name": "Phase 3: User Story 1 - Sign up", "kind": "story", "order": 2,
-               "story": "US1", "priority": "P1", "mvp": true }],
-  "nodes":  [{ "id": "T010", "title": "Create User model in src/models/user.py", "group": "US1",
-               "section": "implementation", "parallel": true, "story": "US1",
-               "files": ["src/models/user.py"], "status": "todo", "line": 47, "tags": [] }],
-  "edges":  [{ "from": "T010", "to": "T012", "reasons": ["sequence"] }],
+  "source": "specs/001-user-auth/tasks.md",
+  "spec": {
+    "id": "001-user-auth",
+    "dir": "specs/001-user-auth",
+    "tasks": "specs/001-user-auth/tasks.md",
+    "docs": { "spec": "specs/001-user-auth/spec.md", "plan": "specs/001-user-auth/plan.md",
+              "data-model": "specs/001-user-auth/data-model.md" },
+    "repo": "git@github.com:acme/app.git",
+    "branch": "001-user-auth",
+    "commit": "c2bb496a07c292b289bf27cd3bb21cfc3c09373b",
+    "dirty": false
+  },
+  "groups": [{ "id": "US1", "name": "Phase 3: User Story 1 - Sign up with email (Priority: P1) 🎯 MVP",
+               "kind": "story", "order": 2, "story": "US1", "priority": "P1", "mvp": true,
+               "line": 36, "end_line": 53,
+               "text": "## Phase 3: User Story 1 - Sign up with email ...\n\n**Goal**: A visitor can ..." }],
+  "nodes":  [{ "id": "T012", "title": "Implement SignupService in src/services/signup.py",
+               "group": "US1", "section": "implementation", "parallel": false, "story": "US1",
+               "files": ["src/services/signup.py"], "status": "todo",
+               "ref": "specs/001-user-auth/tasks.md#T012", "line": 49, "end_line": 52, "tags": [],
+               "text": "- [ ] T012 [US1] Implement SignupService in src/services/signup.py\n  - Hash the password with the helpers in src/lib/crypto.py\n  - ..." }],
+  "edges":  [{ "from": "T011", "to": "T012", "reasons": ["sequence"] }],
   "waves":  [["T001"], ["T002", "T003"]],
   "warnings": []
 }
@@ -103,8 +119,23 @@ and a `tasks` list, and unit edges add `via`:
 { "from": "US1", "to": "US3", "reasons": ["explicit"], "via": [{ "from": "T011", "to": "T017" }] }
 ```
 
-See [`examples/`](examples) for a full input with its JSON and Mermaid output, for both tasks
-(`tasks.dag.json`, `tasks.mmd`) and units (`tasks.units.json`, `tasks.units.mmd`).
+### Finding the task in the spec
+
+- **`spec`** says where the feature lives: its folder, its `tasks.md`, the other Spec Kit
+  documents found next to it, and the git repo, branch and commit the graph was built from.
+  `dirty` is true when `tasks.md` has uncommitted changes, so the commit doesn't contain this
+  version. Paths are relative to the repository root. Outside a repository, or with `--no-git`,
+  they are relative to the working directory and the git fields are null. Input from stdin has
+  no `spec`.
+- **`ref`** on each task is `<path to tasks.md>#<task id>`. It stays valid when lines move.
+  To resolve it, open the file and search for the task ID; `line` is only a hint.
+- **`text`** is the task as written, including indented notes or code under it. Groups and
+  unit nodes carry their whole section, so a story unit includes its Goal and Independent Test.
+
+See [`examples/specs/001-user-auth/`](examples/specs/001-user-auth) for a sample feature folder,
+and [`examples/output/`](examples/output) for its JSON and Mermaid output, for both tasks
+(`tasks.dag.json`, `tasks.mmd`) and units (`units.json`, `units.mmd`). The JSON there is
+built with `--no-git` so it doesn't change with every commit.
 
 ## Using it from Python
 
@@ -125,14 +156,15 @@ units.by_id["US1"].tasks    # the tasks to do in that workspace, in order
 
 ```
 speckit_dag/
-  parser.py   tasks.md -> phases and tasks (tags, files, explicit deps)
+  parser.py   tasks.md -> phases and tasks (tags, files, deps, text)
   rules.py    one function per dependency rule, plus build_graph()
   units.py    group tasks into units of work (--unit story)
+  spec.py     find the spec folder, its documents and the git state
   graph.py    cycle check, redundant-edge removal, waves, ready
   emit.py     json / yaml / mermaid / dot / waves / ready
   cli.py      the speckit-dag command
 schema/       JSON Schema for the generic format
-examples/     sample tasks.md and its outputs
+examples/     a sample Spec Kit feature folder and its outputs
 tests/
 ```
 

@@ -4,7 +4,7 @@ from textwrap import dedent
 from speckit_dag import Options, build_graph, parse_tasks
 
 ROOT = Path(__file__).resolve().parent.parent
-EXAMPLE = ROOT / "examples" / "tasks.md"
+EXAMPLE = ROOT / "examples" / "specs" / "001-user-auth" / "tasks.md"
 SCHEMA = ROOT / "schema" / "speckit-dag.schema.json"
 
 

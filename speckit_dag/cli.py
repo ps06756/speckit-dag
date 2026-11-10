@@ -11,6 +11,7 @@ from .emit import FORMATS
 from .graph import CycleError
 from .parser import parse_tasks
 from .rules import Options, build_graph
+from .spec import locate_spec
 from .units import UNITS, group_by_story
 
 
@@ -32,17 +33,20 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--sequential-stories", action="store_true", help="run user stories one after another instead of in parallel")
     p.add_argument("--no-file-conflicts", action="store_true", help="don't order tasks that touch the same file")
     p.add_argument("--no-reduce", action="store_true", help="keep edges that longer paths already imply")
+    p.add_argument("--no-git", action="store_true", help="don't record the repo, branch and commit; paths become relative to the working directory")
     p.add_argument("--strict", action="store_true", help="exit with status 1 if there are warnings")
     p.add_argument("-q", "--quiet", action="store_true", help="don't print warnings")
     args = p.parse_args(argv)
 
     try:
-        text, source = _read_input(args.input)
+        text, source, path = _read_input(args.input)
     except OSError as e:
         print(f"speckit-dag: {e}", file=sys.stderr)
         return 1
 
     doc = parse_tasks(text, source)
+    if path is not None:
+        doc.spec = locate_spec(path, use_git=not args.no_git)
     if not doc.tasks:
         print(f"speckit-dag: no tasks found in {source}", file=sys.stderr)
         return 1
@@ -72,13 +76,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     return 1 if args.strict and g.warnings else 0
 
 
-def _read_input(arg: str) -> Tuple[str, str]:
+def _read_input(arg: str) -> Tuple[str, str, Optional[Path]]:
     if arg == "-":
-        return sys.stdin.read(), "<stdin>"
+        return sys.stdin.read(), "<stdin>", None
     path = Path(arg)
     if path.is_dir():
         path = path / "tasks.md"
-    return path.read_text(encoding="utf-8"), str(path)
+    return path.read_text(encoding="utf-8"), str(path), path
 
 
 if __name__ == "__main__":  # pragma: no cover

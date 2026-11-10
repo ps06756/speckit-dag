@@ -29,6 +29,17 @@
       ],
       "description": "Where the graph came from, e.g. a file path."
     },
+    "spec": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/spec"
+        }
+      ],
+      "description": "Where the tasks came from. Null when the input had no file, e.g. stdin."
+    },
     "groups": {
       "type": "array",
       "description": "Phases or user stories that nodes belong to, in order.",
@@ -101,6 +112,25 @@
         },
         "mvp": {
           "type": "boolean"
+        },
+        "line": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "Line of the section heading."
+        },
+        "end_line": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "text": {
+          "type": "string",
+          "description": "The whole section as written, heading included."
         }
       }
     },
@@ -182,6 +212,24 @@
           "items": {
             "$ref": "#/$defs/node"
           }
+        },
+        "ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Stable address of the task: <path to tasks.md>#<task id>. Find the task by searching for its id; line is only a hint."
+        },
+        "end_line": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "text": {
+          "type": "string",
+          "description": "Task nodes: the task as written, with any indented lines under it. Unit nodes: the whole section as written."
         }
       }
     },
@@ -224,6 +272,61 @@
               }
             }
           }
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": [
+        "id",
+        "dir",
+        "tasks"
+      ],
+      "description": "The Spec Kit feature folder. Paths are relative to the git repository root, or to the working directory outside a repository.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The feature folder name, e.g. 001-user-auth."
+        },
+        "dir": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "string",
+          "description": "Path to tasks.md."
+        },
+        "docs": {
+          "type": "object",
+          "description": "Other Spec Kit documents found next to tasks.md, keyed spec, plan, research, data-model, quickstart, contracts, checklists. Folders end in /.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "repo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The origin remote URL, without credentials."
+        },
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "True when tasks.md differs from the commit."
         }
       }
     }

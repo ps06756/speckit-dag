@@ -2,7 +2,21 @@
   "version": 1,
   "unit": "task",
   "feature": "User Authentication",
-  "source": "examples/tasks.md",
+  "source": "examples/specs/001-user-auth/tasks.md",
+  "spec": {
+    "id": "001-user-auth",
+    "dir": "examples/specs/001-user-auth",
+    "tasks": "examples/specs/001-user-auth/tasks.md",
+    "docs": {
+      "spec": "examples/specs/001-user-auth/spec.md",
+      "plan": "examples/specs/001-user-auth/plan.md",
+      "data-model": "examples/specs/001-user-auth/data-model.md"
+    },
+    "repo": null,
+    "branch": null,
+    "commit": null,
+    "dirty": null
+  },
   "groups": [
     {
       "id": "setup",
@@ -11,7 +25,10 @@
       "order": 0,
       "story": null,
       "priority": null,
-      "mvp": false
+      "mvp": false,
+      "line": 15,
+      "end_line": 19,
+      "text": "## Phase 1: Setup (Shared Infrastructure)\n\n- [x] T001 Create project structure per implementation plan\n- [ ] T002 [P] Configure ruff and black in pyproject.toml\n- [ ] T003 [P] Add CI workflow in .github/workflows/ci.yml"
     },
     {
       "id": "foundational",
@@ -20,7 +37,10 @@
       "order": 1,
       "story": null,
       "priority": null,
-      "mvp": false
+      "mvp": false,
+      "line": 23,
+      "end_line": 32,
+      "text": "## Phase 2: Foundational (Blocking Prerequisites)\n\n**⚠️ CRITICAL**: No user story work can begin until this phase is complete\n\n- [ ] T004 Set up database schema and migrations in src/db/migrations/\n- [ ] T005 [P] Implement password hashing helpers in src/lib/crypto.py\n- [ ] T006 [P] Configure structured logging in src/lib/logging.py\n- [ ] T007 Create base API router and error handling in src/api/app.py\n\n**Checkpoint**: Foundation ready - user story work can now begin in parallel"
     },
     {
       "id": "US1",
@@ -29,7 +49,10 @@
       "order": 2,
       "story": "US1",
       "priority": "P1",
-      "mvp": true
+      "mvp": true,
+      "line": 36,
+      "end_line": 53,
+      "text": "## Phase 3: User Story 1 - Sign up with email (Priority: P1) 🎯 MVP\n\n**Goal**: A visitor can create an account with an email and password.\n\n### Tests for User Story 1\n\n- [ ] T008 [P] [US1] Contract test for POST /signup in tests/contract/test_signup.py\n- [ ] T009 [P] [US1] Integration test for the sign-up flow in tests/integration/test_signup.py\n\n### Implementation for User Story 1\n\n- [ ] T010 [P] [US1] Create User model in src/models/user.py\n- [ ] T011 [P] [US1] Create VerificationToken model in src/models/token.py\n- [ ] T012 [US1] Implement SignupService in src/services/signup.py\n  - Hash the password with the helpers in src/lib/crypto.py\n  - Create the user and its verification token in one transaction\n  - Return a 409 when the email is already registered\n- [ ] T013 [US1] Implement POST /signup endpoint in src/api/signup.py"
     },
     {
       "id": "US2",
@@ -38,7 +61,10 @@
       "order": 3,
       "story": "US2",
       "priority": "P2",
-      "mvp": false
+      "mvp": false,
+      "line": 57,
+      "end_line": 66,
+      "text": "## Phase 4: User Story 2 - Log in (Priority: P2)\n\n### Tests for User Story 2\n\n- [ ] T014 [P] [US2] Contract test for POST /login in tests/contract/test_login.py\n\n### Implementation for User Story 2\n\n- [ ] T015 [P] [US2] Implement session store in src/services/sessions.py\n- [ ] T016 [US2] Implement POST /login endpoint in src/api/login.py"
     },
     {
       "id": "US3",
@@ -47,7 +73,10 @@
       "order": 4,
       "story": "US3",
       "priority": "P3",
-      "mvp": false
+      "mvp": false,
+      "line": 70,
+      "end_line": 75,
+      "text": "## Phase 5: User Story 3 - Reset password (Priority: P3)\n\n### Implementation for User Story 3\n\n- [ ] T017 [P] [US3] Implement reset-token service in src/services/reset.py (depends on T011)\n- [ ] T018 [US3] Implement POST /password-reset endpoint in src/api/reset.py"
     },
     {
       "id": "polish",
@@ -56,7 +85,10 @@
       "order": 5,
       "story": null,
       "priority": null,
-      "mvp": false
+      "mvp": false,
+      "line": 79,
+      "end_line": 83,
+      "text": "## Phase 6: Polish & Cross-Cutting Concerns\n\n- [ ] T019 [P] Document auth endpoints in docs/api.md\n- [ ] T020 [P] Add rate limiting to auth endpoints in src/api/middleware.py\n- [ ] T021 Run quickstart.md validation"
     }
   ],
   "nodes": [
@@ -69,8 +101,11 @@
       "story": null,
       "files": [],
       "status": "done",
+      "ref": "examples/specs/001-user-auth/tasks.md#T001",
       "line": 17,
-      "tags": []
+      "end_line": 17,
+      "tags": [],
+      "text": "- [x] T001 Create project structure per implementation plan"
     },
     {
       "id": "T002",
@@ -83,8 +118,11 @@
         "pyproject.toml"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T002",
       "line": 18,
-      "tags": []
+      "end_line": 18,
+      "tags": [],
+      "text": "- [ ] T002 [P] Configure ruff and black in pyproject.toml"
     },
     {
       "id": "T003",
@@ -97,8 +135,11 @@
         ".github/workflows/ci.yml"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T003",
       "line": 19,
-      "tags": []
+      "end_line": 19,
+      "tags": [],
+      "text": "- [ ] T003 [P] Add CI workflow in .github/workflows/ci.yml"
     },
     {
       "id": "T004",
@@ -111,8 +152,11 @@
         "src/db/migrations/"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T004",
       "line": 27,
-      "tags": []
+      "end_line": 27,
+      "tags": [],
+      "text": "- [ ] T004 Set up database schema and migrations in src/db/migrations/"
     },
     {
       "id": "T005",
@@ -125,8 +169,11 @@
         "src/lib/crypto.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T005",
       "line": 28,
-      "tags": []
+      "end_line": 28,
+      "tags": [],
+      "text": "- [ ] T005 [P] Implement password hashing helpers in src/lib/crypto.py"
     },
     {
       "id": "T006",
@@ -139,8 +186,11 @@
         "src/lib/logging.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T006",
       "line": 29,
-      "tags": []
+      "end_line": 29,
+      "tags": [],
+      "text": "- [ ] T006 [P] Configure structured logging in src/lib/logging.py"
     },
     {
       "id": "T007",
@@ -153,8 +203,11 @@
         "src/api/app.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T007",
       "line": 30,
-      "tags": []
+      "end_line": 30,
+      "tags": [],
+      "text": "- [ ] T007 Create base API router and error handling in src/api/app.py"
     },
     {
       "id": "T008",
@@ -167,8 +220,11 @@
         "tests/contract/test_signup.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T008",
       "line": 42,
-      "tags": []
+      "end_line": 42,
+      "tags": [],
+      "text": "- [ ] T008 [P] [US1] Contract test for POST /signup in tests/contract/test_signup.py"
     },
     {
       "id": "T009",
@@ -181,8 +237,11 @@
         "tests/integration/test_signup.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T009",
       "line": 43,
-      "tags": []
+      "end_line": 43,
+      "tags": [],
+      "text": "- [ ] T009 [P] [US1] Integration test for the sign-up flow in tests/integration/test_signup.py"
     },
     {
       "id": "T010",
@@ -195,8 +254,11 @@
         "src/models/user.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T010",
       "line": 47,
-      "tags": []
+      "end_line": 47,
+      "tags": [],
+      "text": "- [ ] T010 [P] [US1] Create User model in src/models/user.py"
     },
     {
       "id": "T011",
@@ -209,8 +271,11 @@
         "src/models/token.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T011",
       "line": 48,
-      "tags": []
+      "end_line": 48,
+      "tags": [],
+      "text": "- [ ] T011 [P] [US1] Create VerificationToken model in src/models/token.py"
     },
     {
       "id": "T012",
@@ -223,8 +288,11 @@
         "src/services/signup.py"
       ],
       "status": "todo",
+      "ref": "examples/specs/001-user-auth/tasks.md#T012",
       "line": 49,
-      "tags": []
+      "end_line": 52,
+      "tags": [],
+      "text": "- [ ] T012 [US1] Implement SignupService in src/services/signup.py\n  - Hash the password with the helpers in src/lib/crypto.py\n  - Create the user and its verification token in one transaction\n  - Return a 409 when the email is already registered"
     },
     {
       "id": "T013",
@@ -237,8 +305,11 @@
         "src/api/signup.py"
       ],
       "status": "todo",
-      "line": 50,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T013",
+      "line": 53,
+      "end_line": 53,
+      "tags": [],
+      "text": "- [ ] T013 [US1] Implement POST /signup endpoint in src/api/signup.py"
     },
     {
       "id": "T014",
@@ -251,8 +322,11 @@
         "tests/contract/test_login.py"
       ],
       "status": "todo",
-      "line": 58,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T014",
+      "line": 61,
+      "end_line": 61,
+      "tags": [],
+      "text": "- [ ] T014 [P] [US2] Contract test for POST /login in tests/contract/test_login.py"
     },
     {
       "id": "T015",
@@ -265,8 +339,11 @@
         "src/services/sessions.py"
       ],
       "status": "todo",
-      "line": 62,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T015",
+      "line": 65,
+      "end_line": 65,
+      "tags": [],
+      "text": "- [ ] T015 [P] [US2] Implement session store in src/services/sessions.py"
     },
     {
       "id": "T016",
@@ -279,8 +356,11 @@
         "src/api/login.py"
       ],
       "status": "todo",
-      "line": 63,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T016",
+      "line": 66,
+      "end_line": 66,
+      "tags": [],
+      "text": "- [ ] T016 [US2] Implement POST /login endpoint in src/api/login.py"
     },
     {
       "id": "T017",
@@ -293,8 +373,11 @@
         "src/services/reset.py"
       ],
       "status": "todo",
-      "line": 71,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T017",
+      "line": 74,
+      "end_line": 74,
+      "tags": [],
+      "text": "- [ ] T017 [P] [US3] Implement reset-token service in src/services/reset.py (depends on T011)"
     },
     {
       "id": "T018",
@@ -307,8 +390,11 @@
         "src/api/reset.py"
       ],
       "status": "todo",
-      "line": 72,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T018",
+      "line": 75,
+      "end_line": 75,
+      "tags": [],
+      "text": "- [ ] T018 [US3] Implement POST /password-reset endpoint in src/api/reset.py"
     },
     {
       "id": "T019",
@@ -321,8 +407,11 @@
         "docs/api.md"
       ],
       "status": "todo",
-      "line": 78,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T019",
+      "line": 81,
+      "end_line": 81,
+      "tags": [],
+      "text": "- [ ] T019 [P] Document auth endpoints in docs/api.md"
     },
     {
       "id": "T020",
@@ -335,8 +424,11 @@
         "src/api/middleware.py"
       ],
       "status": "todo",
-      "line": 79,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T020",
+      "line": 82,
+      "end_line": 82,
+      "tags": [],
+      "text": "- [ ] T020 [P] Add rate limiting to auth endpoints in src/api/middleware.py"
     },
     {
       "id": "T021",
@@ -349,8 +441,11 @@
         "quickstart.md"
       ],
       "status": "todo",
-      "line": 80,
-      "tags": []
+      "ref": "examples/specs/001-user-auth/tasks.md#T021",
+      "line": 83,
+      "end_line": 83,
+      "tags": [],
+      "text": "- [ ] T021 Run quickstart.md validation"
     }
   ],
   "edges": [

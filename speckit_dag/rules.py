@@ -33,6 +33,7 @@ def build_graph(doc: ParsedDoc, options: Options = None) -> Graph:
         phases=doc.phases,
         tasks=doc.tasks,
         warnings=list(doc.warnings),
+        spec=doc.spec,
     )
     # Phase edges come last: they link the first and last tasks of each phase,
     # which depend on the edges inside the phase.

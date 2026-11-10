@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .graph import ready, waves
-from .model import Graph, Phase, Task, Unit, UnitGraph
+from .model import Graph, Phase, SpecInfo, Task, Unit, UnitGraph
 
 FORMAT_VERSION = 1
 
@@ -21,7 +21,7 @@ AnyGraph = Union[Graph, UnitGraph]
 def to_dict(g: AnyGraph) -> Dict[str, Any]:
     """The generic graph format (see schema/speckit-dag.schema.json)."""
     if isinstance(g, UnitGraph):
-        nodes = [_unit_dict(u) for u in g.nodes]
+        nodes = [_unit_dict(u, g.spec) for u in g.nodes]
         edges = [
             {"from": a, "to": b, "reasons": r, "via": [{"from": x, "to": y} for x, y in g.via[(a, b)]]}
             for a, b, r in g.sorted_edges()
@@ -29,7 +29,7 @@ def to_dict(g: AnyGraph) -> Dict[str, Any]:
         groups = [_group_dict(u.phase) for u in g.nodes]
         unit = g.by
     else:
-        nodes = [_task_dict(t) for t in g.tasks]
+        nodes = [_task_dict(t, g.spec) for t in g.tasks]
         edges = [{"from": a, "to": b, "reasons": r} for a, b, r in g.sorted_edges()]
         groups = [_group_dict(p) for p in g.phases_with_tasks()]
         unit = "task"
@@ -38,6 +38,7 @@ def to_dict(g: AnyGraph) -> Dict[str, Any]:
         "unit": unit,
         "feature": g.feature,
         "source": g.source,
+        "spec": _spec_dict(g.spec),
         "groups": groups,
         "nodes": nodes,
         "edges": edges,
@@ -55,10 +56,28 @@ def _group_dict(p: Phase) -> Dict[str, Any]:
         "story": p.story,
         "priority": p.priority,
         "mvp": p.mvp,
+        "line": p.line,
+        "end_line": p.end_line,
+        "text": p.text,
     }
 
 
-def _task_dict(t: Task) -> Dict[str, Any]:
+def _spec_dict(spec: Optional[SpecInfo]) -> Optional[Dict[str, Any]]:
+    if spec is None:
+        return None
+    return {
+        "id": spec.id,
+        "dir": spec.dir,
+        "tasks": spec.tasks,
+        "docs": spec.docs,
+        "repo": spec.repo,
+        "branch": spec.branch,
+        "commit": spec.commit,
+        "dirty": spec.dirty,
+    }
+
+
+def _task_dict(t: Task, spec: Optional[SpecInfo]) -> Dict[str, Any]:
     return {
         "id": t.id,
         "title": t.title,
@@ -68,12 +87,15 @@ def _task_dict(t: Task) -> Dict[str, Any]:
         "story": t.story,
         "files": t.files,
         "status": t.status,
+        "ref": spec.ref(t.id) if spec else None,
         "line": t.line,
+        "end_line": t.end_line,
         "tags": t.tags,
+        "text": t.text,
     }
 
 
-def _unit_dict(u: Unit) -> Dict[str, Any]:
+def _unit_dict(u: Unit, spec: Optional[SpecInfo]) -> Dict[str, Any]:
     p = u.phase
     return {
         "id": u.id,
@@ -86,7 +108,9 @@ def _unit_dict(u: Unit) -> Dict[str, Any]:
         "files": u.files,
         "status": u.status,
         "line": p.line,
-        "tasks": [_task_dict(t) for t in u.tasks],
+        "end_line": p.end_line,
+        "text": p.text,
+        "tasks": [_task_dict(t, spec) for t in u.tasks],
     }
 
 

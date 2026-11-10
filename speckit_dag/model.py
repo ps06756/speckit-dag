@@ -32,6 +32,8 @@ class Phase:
     mvp: bool = False
     heading: Optional[str] = None  # the heading text without "Phase N:"
     line: Optional[int] = None
+    end_line: Optional[int] = None
+    text: str = ""  # the whole section as written, heading included
 
 
 @dataclass
@@ -49,10 +51,33 @@ class Task:
     line: int
     order: int
     tags: List[str] = field(default_factory=list)
+    text: str = ""  # the task as written: its line plus any indented lines under it
+    end_line: int = 0
 
     @property
     def status(self) -> str:
         return "done" if self.done else "todo"
+
+
+@dataclass
+class SpecInfo:
+    """Where a tasks.md lives: its Spec Kit feature folder and the git state it came from.
+
+    Paths are relative to the git repository root, or to the working directory
+    outside a repository.
+    """
+
+    id: str  # the feature folder name, e.g. "001-user-auth"
+    dir: str
+    tasks: str
+    docs: Dict[str, str] = field(default_factory=dict)  # other Spec Kit files found next to tasks.md
+    repo: Optional[str] = None
+    branch: Optional[str] = None
+    commit: Optional[str] = None
+    dirty: Optional[bool] = None  # tasks.md differs from that commit
+
+    def ref(self, task_id: str) -> str:
+        return f"{self.tasks}#{task_id}"
 
 
 @dataclass
@@ -62,6 +87,7 @@ class ParsedDoc:
     phases: List[Phase]
     tasks: List[Task]
     warnings: List[str] = field(default_factory=list)
+    spec: Optional[SpecInfo] = None
 
 
 class EdgeSet:
@@ -109,6 +135,7 @@ class Graph(EdgeSet):
     tasks: List[Task]
     edges: Dict[EdgeKey, Set[str]] = field(default_factory=dict)
     warnings: List[str] = field(default_factory=list)
+    spec: Optional[SpecInfo] = None
 
     def __post_init__(self) -> None:
         self.by_id: Dict[str, Task] = {t.id: t for t in self.tasks}
@@ -178,3 +205,7 @@ class UnitGraph(EdgeSet):
     @property
     def source(self) -> Optional[str]:
         return self.task_graph.source
+
+    @property
+    def spec(self) -> Optional[SpecInfo]:
+        return self.task_graph.spec

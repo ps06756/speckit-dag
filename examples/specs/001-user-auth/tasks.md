@@ -47,6 +47,9 @@ description: "Task list for user authentication"
 - [ ] T010 [P] [US1] Create User model in src/models/user.py
 - [ ] T011 [P] [US1] Create VerificationToken model in src/models/token.py
 - [ ] T012 [US1] Implement SignupService in src/services/signup.py
+  - Hash the password with the helpers in src/lib/crypto.py
+  - Create the user and its verification token in one transaction
+  - Return a 409 when the email is already registered
 - [ ] T013 [US1] Implement POST /signup endpoint in src/api/signup.py
 
 ---

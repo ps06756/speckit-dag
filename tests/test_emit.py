@@ -23,9 +23,13 @@ def test_dict_shape(example_graph):
         "story": "US1",
         "files": ["src/models/user.py"],
         "status": "todo",
-        "line": node["line"],
+        "ref": None,  # built from text, so there's no spec folder
+        "line": 47,
+        "end_line": 47,
         "tags": [],
+        "text": "- [ ] T010 [P] [US1] Create User model in src/models/user.py",
     }
+    assert d["spec"] is None
     assert {"from": "T011", "to": "T017", "reasons": ["explicit"]} in d["edges"]
 
 

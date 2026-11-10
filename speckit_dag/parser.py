@@ -8,8 +8,8 @@ Recognised layout (from Spec Kit's tasks template):
     - [ ] T001 [P] [US1] Description in path/to/file.py (depends on T000)
 
 Any other `##` heading that holds task lines is treated as a phase too, so
-hand-written files without "Phase N:" still work. Lines inside fenced code
-blocks are ignored.
+hand-written files without "Phase N:" still work. Fenced code blocks are not
+scanned for tasks; one indented under a task becomes part of that task's text.
 """
 
 from __future__ import annotations
@@ -59,16 +59,21 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
     seen_ids = set()
     used_phase_ids = set()
 
+    lines = text.splitlines()
     phase: Optional[Phase] = None
+    open_phase: Optional[Phase] = None  # the phase whose section text is still running
     pending_heading: Optional[str] = None  # a non-"Phase" `##` heading, becomes a phase if tasks follow
     pending_line: Optional[int] = None
     section: Optional[str] = None
     section_index = 0
     in_fence = False
+    fence_task: Optional[Task] = None  # the task a fenced block is indented under
     last_task: Optional[Task] = None
     last_indent = 0
+    blank_run = 0  # blank lines after the last task line, kept if more of the task follows
 
     def new_phase(name: str, number: Optional[str], line: Optional[int]) -> Phase:
+        nonlocal open_phase
         kind, story, priority, mvp = _classify(name)
         base = story or (kind if kind != "other" else _slug(name)) or f"phase-{len(phases) + 1}"
         pid, n = base, 2
@@ -88,17 +93,44 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
             line=line,
         )
         phases.append(p)
+        open_phase = p
         return p
 
-    for lineno, raw in enumerate(text.splitlines(), 1):
+    def close_phase(end: int) -> None:
+        nonlocal open_phase
+        if open_phase is not None:
+            open_phase.end_line = end
+            open_phase = None
+
+    def append_to_task(task: Task, raw_line: str, lineno: int) -> None:
+        nonlocal blank_run
+        lead = raw_line[:last_indent]
+        body = raw_line[last_indent:] if not lead.strip() else raw_line.lstrip()
+        task.text += "\n" * (blank_run + 1) + body
+        task.end_line = lineno
+        blank_run = 0
+
+    for lineno, raw in enumerate(lines, 1):
         line = raw.rstrip()
         stripped = line.strip()
+        indent = len(line) - len(line.lstrip())
 
         if stripped.startswith(("```", "~~~")):
-            in_fence = not in_fence
-            last_task = None
+            if not in_fence:
+                in_fence = True
+                fence_task = last_task if last_task is not None and indent > last_indent else None
+            else:
+                in_fence = False
+            if fence_task is not None:
+                append_to_task(fence_task, line, lineno)
+                if not in_fence:
+                    fence_task = None
+            else:
+                last_task = None
             continue
         if in_fence:
+            if fence_task is not None:
+                append_to_task(fence_task, line, lineno)
             continue
 
         m = FEATURE_RE.match(line)
@@ -109,12 +141,14 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
 
         m = PHASE_RE.match(line)
         if m:
+            close_phase(lineno - 1)
             phase = new_phase(m.group("name"), m.group("num"), lineno)
             pending_heading, section, section_index, last_task = None, None, 0, None
             continue
 
         m = H2_RE.match(line)
         if m:
+            close_phase(lineno - 1)
             phase, pending_heading, pending_line = None, m.group("title"), lineno
             section, section_index, last_task = None, 0, None
             continue
@@ -139,6 +173,7 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
             rest, parallel, story, tags = _split_tags(m.group("rest"))
             if not rest:
                 warnings.append(f"line {lineno}: task {tid} has no description")
+            task_indent = len(m.group("indent"))
             task = Task(
                 id=tid,
                 title=rest,
@@ -153,20 +188,34 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
                 line=lineno,
                 order=len(tasks),
                 tags=tags,
+                text=line[task_indent:],
+                end_line=lineno,
             )
             tasks.append(task)
-            last_task, last_indent = task, len(m.group("indent"))
+            last_task, last_indent, blank_run = task, task_indent, 0
             continue
 
-        # Indented text under a task (a sub-bullet or wrapped line) can carry dependencies.
-        indent = len(line) - len(line.lstrip())
+        # Indented text under a task (a sub-bullet or wrapped line) is part of the task,
+        # and can carry dependencies.
         if last_task is not None and stripped and indent > last_indent:
+            append_to_task(last_task, line, lineno)
             for dep in extract_deps(stripped):
                 if dep not in last_task.explicit_deps:
                     last_task.explicit_deps.append(dep)
             continue
-        if stripped:
-            last_task = None
+        if not stripped:
+            blank_run += 1
+            continue
+        last_task = None
+
+    close_phase(len(lines))
+    for p in phases:
+        start = p.line or min(t.line for t in tasks if t.phase is p)
+        end = p.end_line or len(lines)
+        while end > start and lines[end - 1].strip() in ("", "---", "***", "___"):
+            end -= 1
+        p.line, p.end_line = start, end
+        p.text = "\n".join(l.rstrip() for l in lines[start - 1 : end])
 
     return ParsedDoc(feature=feature, source=source, phases=phases, tasks=tasks, warnings=warnings)
 
