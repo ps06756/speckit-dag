@@ -83,6 +83,7 @@ Spec Kit-specific, so other planners can produce the same file.
 {
   "version": 1,
   "unit": "task",
+  "hash": "sha256:7a26eee8f727a162ad0fe561131d0809a1a9ced97a5e08956e5765bb38f8e24a",
   "feature": "User Authentication",
   "source": "specs/001-user-auth/tasks.md",
   "spec": {
@@ -94,7 +95,8 @@ Spec Kit-specific, so other planners can produce the same file.
     "repo": "git@github.com:acme/app.git",
     "branch": "001-user-auth",
     "commit": "c2bb496a07c292b289bf27cd3bb21cfc3c09373b",
-    "dirty": false
+    "dirty": false,
+    "pushed": true
   },
   "groups": [{ "id": "US1", "name": "Phase 3: User Story 1 - Sign up with email (Priority: P1) 🎯 MVP",
                "kind": "story", "order": 2, "story": "US1", "priority": "P1", "mvp": true,
@@ -123,14 +125,41 @@ and a `tasks` list, and unit edges add `via`:
 
 - **`spec`** says where the feature lives: its folder, its `tasks.md`, the other Spec Kit
   documents found next to it, and the git repo, branch and commit the graph was built from.
-  `dirty` is true when `tasks.md` has uncommitted changes, so the commit doesn't contain this
-  version. Paths are relative to the repository root. Outside a repository, or with `--no-git`,
-  they are relative to the working directory and the git fields are null. Input from stdin has
-  no `spec`.
+  Paths, `source` included, are relative to the repository root wherever you run the command.
+  Outside a repository, or with `--no-git`, they are relative to the working directory and the
+  git fields are null. Input from stdin has no `spec`.
 - **`ref`** on each task is `<path to tasks.md>#<task id>`. It stays valid when lines move.
   To resolve it, open the file and search for the task ID; `line` is only a hint.
 - **`text`** is the task as written, including indented notes or code under it. Groups and
   unit nodes carry their whole section, so a story unit includes its Goal and Independent Test.
+
+### Graph identity
+
+- **`hash`** identifies the graph's content: the same tasks give the same hash on any commit,
+  branch or machine. An orchestrator can assign its own DAG id and store the hash beside it.
+  Importing a file with a known hash is a re-import, not a new DAG; a different hash for the
+  same spec is a new version, so a running DAG is never changed underneath it.
+  - It covers the groups, nodes and edges, the `unit`, and the format version.
+  - It leaves out where the graph came from (`source`, `spec`, `ref`), line numbers, and
+    progress (`status`, and the `[x]` marks in `text`). Ticking tasks done or adding a blank
+    line keeps the hash. Changing a task, its notes, a story's Goal, a dependency, or an option
+    such as `--sequential-stories` gives a new one.
+- **`dirty`** is true when anything in the spec folder (modified, staged or untracked) differs
+  from the commit. **`pushed`** is true when the commit is on an `origin` branch, as of the
+  last fetch. Workspaces clone from the remote, so a dirty or unpushed spec points at text
+  they can't see.
+- Each of these gets a warning, and `--strict` fails on warnings: uncommitted changes in the
+  spec folder, a commit not on `origin`, no `origin` remote, no commits, or not being in a git
+  repository. Changes outside the spec folder don't count. `--no-git` skips the checks.
+
+  ```
+  warning: specs/001-user-auth has changes that aren't committed (specs/001-user-auth/tasks.md);
+  workspaces cloned from the remote won't see them
+  warning: commit 2fedf30 isn't on origin yet (as of the last fetch); push it so workspaces can clone it
+  ```
+
+  `pushed` is only as fresh as the last `git fetch`, so the orchestrator should still check at
+  import that the commit is on the remote, and refuse the graph if it isn't.
 
 See [`examples/specs/001-user-auth/`](examples/specs/001-user-auth) for a sample feature folder,
 and [`examples/output/`](examples/output) for its JSON and Mermaid output, for both tasks
@@ -160,6 +189,7 @@ speckit_dag/
   rules.py    one function per dependency rule, plus build_graph()
   units.py    group tasks into units of work (--unit story)
   spec.py     find the spec folder, its documents and the git state
+  identity.py the content hash
   graph.py    cycle check, redundant-edge removal, waves, ready
   emit.py     json / yaml / mermaid / dot / waves / ready
   cli.py      the speckit-dag command

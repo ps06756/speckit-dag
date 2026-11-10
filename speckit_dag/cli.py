@@ -11,7 +11,7 @@ from .emit import FORMATS
 from .graph import CycleError
 from .parser import parse_tasks
 from .rules import Options, build_graph
-from .spec import locate_spec
+from .spec import attach_spec
 from .units import UNITS, group_by_story
 
 
@@ -46,7 +46,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     doc = parse_tasks(text, source)
     if path is not None:
-        doc.spec = locate_spec(path, use_git=not args.no_git)
+        attach_spec(doc, path, use_git=not args.no_git)
     if not doc.tasks:
         print(f"speckit-dag: no tasks found in {source}", file=sys.stderr)
         return 1

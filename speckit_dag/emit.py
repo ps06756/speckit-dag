@@ -11,6 +11,7 @@ import re
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from .graph import ready, waves
+from .identity import content_hash
 from .model import Graph, Phase, SpecInfo, Task, Unit, UnitGraph
 
 FORMAT_VERSION = 1
@@ -33,9 +34,11 @@ def to_dict(g: AnyGraph) -> Dict[str, Any]:
         edges = [{"from": a, "to": b, "reasons": r} for a, b, r in g.sorted_edges()]
         groups = [_group_dict(p) for p in g.phases_with_tasks()]
         unit = "task"
+    d = {"version": FORMAT_VERSION, "unit": unit, "groups": groups, "nodes": nodes, "edges": edges}
     return {
         "version": FORMAT_VERSION,
         "unit": unit,
+        "hash": content_hash(d),
         "feature": g.feature,
         "source": g.source,
         "spec": _spec_dict(g.spec),
@@ -74,6 +77,7 @@ def _spec_dict(spec: Optional[SpecInfo]) -> Optional[Dict[str, Any]]:
         "branch": spec.branch,
         "commit": spec.commit,
         "dirty": spec.dirty,
+        "pushed": spec.pushed,
     }
 
 

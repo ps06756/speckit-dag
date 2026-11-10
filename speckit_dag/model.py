@@ -74,7 +74,10 @@ class SpecInfo:
     repo: Optional[str] = None
     branch: Optional[str] = None
     commit: Optional[str] = None
-    dirty: Optional[bool] = None  # tasks.md differs from that commit
+    dirty: Optional[bool] = None  # files in the spec folder differ from that commit
+    pushed: Optional[bool] = None  # the commit is on origin, as of the last fetch
+    changed: List[str] = field(default_factory=list)  # the files behind `dirty`
+    warnings: List[str] = field(default_factory=list)
 
     def ref(self, task_id: str) -> str:
         return f"{self.tasks}#{task_id}"

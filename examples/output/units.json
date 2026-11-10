@@ -1,6 +1,7 @@
 {
   "version": 1,
   "unit": "story",
+  "hash": "sha256:b72298ffba535ec4938974a8d5a85ef1b00a3eea90075f71b784729607761084",
   "feature": "User Authentication",
   "source": "examples/specs/001-user-auth/tasks.md",
   "spec": {
@@ -15,7 +16,8 @@
     "repo": null,
     "branch": null,
     "commit": null,
-    "dirty": null
+    "dirty": null,
+    "pushed": null
   },
   "groups": [
     {

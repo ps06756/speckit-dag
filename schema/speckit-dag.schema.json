@@ -16,6 +16,11 @@
       "type": "string",
       "description": "What one node is: task (one Spec Kit task) or story (one phase or user story: a unit of work that is built and merged as one PR)."
     },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Identifies the graph's content: the same tasks give the same hash on any commit or machine. sha256 of the canonical JSON (sorted keys, no spaces, UTF-8) of version, unit, groups, nodes and edges, leaving out ref, line, end_line and status, with task checkboxes in text read as unchecked. Progress and moved lines keep the hash; changed tasks, text, dependencies or options give a new one."
+    },
     "feature": {
       "type": [
         "string",
@@ -326,7 +331,14 @@
             "boolean",
             "null"
           ],
-          "description": "True when tasks.md differs from the commit."
+          "description": "True when files in the spec folder (modified, staged or untracked) differ from the commit, so a workspace cloned from the remote won't see them."
+        },
+        "pushed": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "True when the commit is on an origin branch, as of the last fetch. False when it isn't, or there is no origin. Null when unknown."
         }
       }
     }

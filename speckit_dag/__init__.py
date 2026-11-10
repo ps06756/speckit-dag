@@ -10,7 +10,8 @@ from .graph import CycleError, ready, topo_order, waves
 from .model import Graph, ParsedDoc, Phase, SpecInfo, Task, Unit, UnitGraph
 from .parser import parse_tasks
 from .rules import Options, build_graph
-from .spec import locate_spec
+from .identity import content_hash
+from .spec import attach_spec, locate_spec
 from .units import group_by_story
 
 __version__ = "0.1.0"
@@ -22,7 +23,7 @@ def load(path: Union[str, Path], options: Optional[Options] = None, use_git: boo
     if path.is_dir():
         path = path / "tasks.md"
     doc = parse_tasks(path.read_text(encoding="utf-8"), source=str(path))
-    doc.spec = locate_spec(path, use_git=use_git)
+    attach_spec(doc, path, use_git=use_git)
     return build_graph(doc, options)
 
 
@@ -37,7 +38,9 @@ __all__ = [
     "Task",
     "Unit",
     "UnitGraph",
+    "attach_spec",
     "build_graph",
+    "content_hash",
     "group_by_story",
     "load",
     "locate_spec",
