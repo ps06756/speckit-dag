@@ -1,0 +1,17 @@
+flowchart TD
+  u_setup["setup · Setup (Shared Infrastructure)<br/>3 tasks, 1 done"]
+  u_foundational["foundational · Foundational (Blocking Prerequisites)<br/>4 tasks"]
+  u_US1["US1 · User Story 1 - Sign up with email<br/>6 tasks"]
+  u_US2["US2 · User Story 2 - Log in<br/>3 tasks"]
+  u_US3["US3 · User Story 3 - Reset password<br/>2 tasks"]
+  u_polish["polish · Polish & Cross-Cutting Concerns<br/>3 tasks"]
+  u_setup --> u_foundational
+  u_foundational --> u_US1
+  u_foundational --> u_US2
+  u_US1 -.-> u_US3
+  u_US2 --> u_polish
+  u_US3 --> u_polish
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+  classDef partial fill:#fef9c3,stroke:#ca8a04,color:#713f12
+  classDef parallel stroke-dasharray:4 3
+  class u_setup partial

@@ -1,4 +1,4 @@
-"""Data types for parsed tasks and the dependency graph."""
+"""Data types for parsed tasks and the dependency graphs built from them."""
 
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ REASONS = ("explicit", "phase", "section", "sequence", "file")
 
 PHASE_KINDS = ("setup", "foundational", "story", "polish", "other")
 
+EdgeKey = Tuple[str, str]
+
 
 @dataclass
 class Phase:
@@ -28,6 +30,8 @@ class Phase:
     story: Optional[str] = None
     priority: Optional[str] = None
     mvp: bool = False
+    heading: Optional[str] = None  # the heading text without "Phase N:"
+    line: Optional[int] = None
 
 
 @dataclass
@@ -60,11 +64,45 @@ class ParsedDoc:
     warnings: List[str] = field(default_factory=list)
 
 
-EdgeKey = Tuple[str, str]
+class EdgeSet:
+    """Edge helpers shared by both graph types.
+
+    Subclasses provide `nodes` (items with `.id` and `.order`), `edges` and `by_id`.
+    """
+
+    nodes: list
+    edges: Dict[EdgeKey, Set[str]]
+    by_id: dict
+
+    def add_edge(self, src: str, dst: str, reason: str) -> None:
+        self.edges.setdefault((src, dst), set()).add(reason)
+
+    def successors(self) -> Dict[str, List[str]]:
+        out: Dict[str, List[str]] = {n.id: [] for n in self.nodes}
+        for src, dst in self.edges:
+            out[src].append(dst)
+        for ids in out.values():
+            ids.sort(key=lambda i: self.by_id[i].order)
+        return out
+
+    def predecessors(self) -> Dict[str, List[str]]:
+        out: Dict[str, List[str]] = {n.id: [] for n in self.nodes}
+        for src, dst in self.edges:
+            out[dst].append(src)
+        for ids in out.values():
+            ids.sort(key=lambda i: self.by_id[i].order)
+        return out
+
+    def sorted_edges(self) -> List[Tuple[str, str, List[str]]]:
+        order = {n.id: n.order for n in self.nodes}
+        keys = sorted(self.edges, key=lambda k: (order[k[0]], order[k[1]]))
+        return [(a, b, [r for r in REASONS if r in self.edges[(a, b)]]) for a, b in keys]
 
 
 @dataclass
-class Graph:
+class Graph(EdgeSet):
+    """One node per Spec Kit task."""
+
     feature: Optional[str]
     source: Optional[str]
     phases: List[Phase]
@@ -75,29 +113,9 @@ class Graph:
     def __post_init__(self) -> None:
         self.by_id: Dict[str, Task] = {t.id: t for t in self.tasks}
 
-    def add_edge(self, src: str, dst: str, reason: str) -> None:
-        self.edges.setdefault((src, dst), set()).add(reason)
-
-    def successors(self) -> Dict[str, List[str]]:
-        out: Dict[str, List[str]] = {t.id: [] for t in self.tasks}
-        for src, dst in self.edges:
-            out[src].append(dst)
-        for ids in out.values():
-            ids.sort(key=lambda i: self.by_id[i].order)
-        return out
-
-    def predecessors(self) -> Dict[str, List[str]]:
-        out: Dict[str, List[str]] = {t.id: [] for t in self.tasks}
-        for src, dst in self.edges:
-            out[dst].append(src)
-        for ids in out.values():
-            ids.sort(key=lambda i: self.by_id[i].order)
-        return out
-
-    def sorted_edges(self) -> List[Tuple[str, str, List[str]]]:
-        order = {t.id: t.order for t in self.tasks}
-        keys = sorted(self.edges, key=lambda k: (order[k[0]], order[k[1]]))
-        return [(a, b, [r for r in REASONS if r in self.edges[(a, b)]]) for a, b in keys]
+    @property
+    def nodes(self) -> List[Task]:
+        return self.tasks
 
     def phases_with_tasks(self) -> List[Phase]:
         used = {id(t.phase) for t in self.tasks}
@@ -105,3 +123,58 @@ class Graph:
 
     def tasks_in(self, phase: Phase) -> List[Task]:
         return [t for t in self.tasks if t.phase is phase]
+
+
+@dataclass
+class Unit:
+    """A group of tasks that ships together: one workspace, one PR."""
+
+    id: str
+    title: str
+    phase: Phase
+    order: int
+    tasks: List[Task]  # in the order to do them
+
+    @property
+    def kind(self) -> str:
+        return self.phase.kind
+
+    @property
+    def done(self) -> bool:
+        return all(t.done for t in self.tasks)
+
+    @property
+    def status(self) -> str:
+        if self.done:
+            return "done"
+        return "in_progress" if any(t.done for t in self.tasks) else "todo"
+
+    @property
+    def files(self) -> List[str]:
+        out: List[str] = []
+        for t in self.tasks:
+            out.extend(f for f in t.files if f not in out)
+        return out
+
+
+@dataclass
+class UnitGraph(EdgeSet):
+    """One node per unit of work. Edges come from the task edges between units."""
+
+    by: str
+    task_graph: Graph
+    nodes: List[Unit]
+    edges: Dict[EdgeKey, Set[str]] = field(default_factory=dict)
+    via: Dict[EdgeKey, List[EdgeKey]] = field(default_factory=dict)  # unit edge -> task edges behind it
+    warnings: List[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.by_id: Dict[str, Unit] = {u.id: u for u in self.nodes}
+
+    @property
+    def feature(self) -> Optional[str]:
+        return self.task_graph.feature
+
+    @property
+    def source(self) -> Optional[str]:
+        return self.task_graph.source

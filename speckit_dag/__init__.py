@@ -7,9 +7,10 @@ from typing import Optional, Union
 
 from .emit import FORMATS, to_dict, to_dot, to_json, to_mermaid, to_yaml
 from .graph import CycleError, ready, topo_order, waves
-from .model import Graph, ParsedDoc, Phase, Task
+from .model import Graph, ParsedDoc, Phase, Task, Unit, UnitGraph
 from .parser import parse_tasks
 from .rules import Options, build_graph
+from .units import group_by_story
 
 __version__ = "0.1.0"
 
@@ -31,7 +32,10 @@ __all__ = [
     "ParsedDoc",
     "Phase",
     "Task",
+    "Unit",
+    "UnitGraph",
     "build_graph",
+    "group_by_story",
     "load",
     "parse_tasks",
     "ready",

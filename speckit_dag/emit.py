@@ -1,61 +1,100 @@
-"""Output formats: the generic JSON/YAML graph, Mermaid, Graphviz DOT, and text views."""
+"""Output formats: the generic JSON/YAML graph, Mermaid, Graphviz DOT, and text views.
+
+Every format works for both graph types: one node per task (`Graph`) and one
+node per unit of work (`UnitGraph`).
+"""
 
 from __future__ import annotations
 
 import json
 import re
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Union
 
 from .graph import ready, waves
-from .model import Graph, Task
+from .model import Graph, Phase, Task, Unit, UnitGraph
 
 FORMAT_VERSION = 1
 
+AnyGraph = Union[Graph, UnitGraph]
 
-def to_dict(g: Graph) -> Dict[str, Any]:
+
+def to_dict(g: AnyGraph) -> Dict[str, Any]:
     """The generic graph format (see schema/speckit-dag.schema.json)."""
+    if isinstance(g, UnitGraph):
+        nodes = [_unit_dict(u) for u in g.nodes]
+        edges = [
+            {"from": a, "to": b, "reasons": r, "via": [{"from": x, "to": y} for x, y in g.via[(a, b)]]}
+            for a, b, r in g.sorted_edges()
+        ]
+        groups = [_group_dict(u.phase) for u in g.nodes]
+        unit = g.by
+    else:
+        nodes = [_task_dict(t) for t in g.tasks]
+        edges = [{"from": a, "to": b, "reasons": r} for a, b, r in g.sorted_edges()]
+        groups = [_group_dict(p) for p in g.phases_with_tasks()]
+        unit = "task"
     return {
         "version": FORMAT_VERSION,
+        "unit": unit,
         "feature": g.feature,
         "source": g.source,
-        "groups": [
-            {
-                "id": p.id,
-                "name": p.name,
-                "kind": p.kind,
-                "order": p.index,
-                "story": p.story,
-                "priority": p.priority,
-                "mvp": p.mvp,
-            }
-            for p in g.phases_with_tasks()
-        ],
-        "nodes": [
-            {
-                "id": t.id,
-                "title": t.title,
-                "group": t.phase.id,
-                "section": t.section,
-                "parallel": t.parallel,
-                "story": t.story,
-                "files": t.files,
-                "status": t.status,
-                "line": t.line,
-                "tags": t.tags,
-            }
-            for t in g.tasks
-        ],
-        "edges": [{"from": a, "to": b, "reasons": r} for a, b, r in g.sorted_edges()],
+        "groups": groups,
+        "nodes": nodes,
+        "edges": edges,
         "waves": waves(g),
         "warnings": g.warnings,
     }
 
 
-def to_json(g: Graph) -> str:
+def _group_dict(p: Phase) -> Dict[str, Any]:
+    return {
+        "id": p.id,
+        "name": p.name,
+        "kind": p.kind,
+        "order": p.index,
+        "story": p.story,
+        "priority": p.priority,
+        "mvp": p.mvp,
+    }
+
+
+def _task_dict(t: Task) -> Dict[str, Any]:
+    return {
+        "id": t.id,
+        "title": t.title,
+        "group": t.phase.id,
+        "section": t.section,
+        "parallel": t.parallel,
+        "story": t.story,
+        "files": t.files,
+        "status": t.status,
+        "line": t.line,
+        "tags": t.tags,
+    }
+
+
+def _unit_dict(u: Unit) -> Dict[str, Any]:
+    p = u.phase
+    return {
+        "id": u.id,
+        "title": u.title,
+        "group": u.id,
+        "kind": u.kind,
+        "story": p.story,
+        "priority": p.priority,
+        "mvp": p.mvp,
+        "files": u.files,
+        "status": u.status,
+        "line": p.line,
+        "tasks": [_task_dict(t) for t in u.tasks],
+    }
+
+
+def to_json(g: AnyGraph) -> str:
     return json.dumps(to_dict(g), indent=2, ensure_ascii=False) + "\n"
 
 
-def to_yaml(g: Graph) -> str:
+def to_yaml(g: AnyGraph) -> str:
     try:
         import yaml
     except ImportError as e:  # pragma: no cover - depends on the environment
@@ -63,49 +102,53 @@ def to_yaml(g: Graph) -> str:
     return yaml.safe_dump(to_dict(g), sort_keys=False, allow_unicode=True)
 
 
-def to_mermaid(g: Graph, max_label: int = 60) -> str:
+def to_mermaid(g: AnyGraph, max_label: int = 60) -> str:
     lines = ["flowchart TD"]
-    for p in g.phases_with_tasks():
-        lines.append(f'  subgraph g_{_safe_id(p.id)}["{_mermaid_text(p.name)}"]')
-        for t in g.tasks_in(p):
-            lines.append(f'    {t.id}["{_mermaid_text(_label(t, max_label))}"]')
-        lines.append("  end")
+    if isinstance(g, UnitGraph):
+        ids = {u.id: "u_" + _safe_id(u.id) for u in g.nodes}
+        for u in g.nodes:
+            label = f"{u.id} · {_trunc(u.title, max_label)}<br/>{_count(u)}"
+            lines.append(f'  {ids[u.id]}["{_mermaid_text(label)}"]')
+    else:
+        ids = {t.id: t.id for t in g.tasks}
+        for p in g.phases_with_tasks():
+            lines.append(f'  subgraph g_{_safe_id(p.id)}["{_mermaid_text(p.name)}"]')
+            for t in g.tasks_in(p):
+                lines.append(f'    {t.id}["{_mermaid_text(t.id + " " + _trunc(t.title, max_label))}"]')
+            lines.append("  end")
     for a, b, reasons in g.sorted_edges():
         arrow = "-.->" if reasons == ["explicit"] else "-->"
-        lines.append(f"  {a} {arrow} {b}")
+        lines.append(f"  {ids[a]} {arrow} {ids[b]}")
 
     lines.append("  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d")
+    lines.append("  classDef partial fill:#fef9c3,stroke:#ca8a04,color:#713f12")
     lines.append("  classDef parallel stroke-dasharray:4 3")
-    done = [t.id for t in g.tasks if t.done]
-    parallel = [t.id for t in g.tasks if t.parallel]
-    if done:
-        lines.append(f"  class {','.join(done)} done")
-    if parallel:
-        lines.append(f"  class {','.join(parallel)} parallel")
+    done = [ids[n.id] for n in g.nodes if n.status == "done"]
+    partial = [ids[n.id] for n in g.nodes if n.status == "in_progress"]
+    parallel = [ids[n.id] for n in g.nodes if getattr(n, "parallel", False)]
+    for cls, members in (("done", done), ("partial", partial), ("parallel", parallel)):
+        if members:
+            lines.append(f"  class {','.join(members)} {cls}")
     return "\n".join(lines) + "\n"
 
 
-def to_dot(g: Graph, max_label: int = 60) -> str:
+def to_dot(g: AnyGraph, max_label: int = 60) -> str:
     lines = [
         f"digraph {_dot_str(g.feature or 'tasks')} {{",
         "  rankdir=TB;",
         '  node [shape=box, style=rounded, fontname="Helvetica", fontsize=10];',
         "  edge [color=\"#64748b\"];",
     ]
-    for p in g.phases_with_tasks():
-        lines.append(f"  subgraph {_dot_str('cluster_' + p.id)} {{")
-        lines.append(f"    label={_dot_str(p.name)}; style=rounded; color=\"#cbd5e1\";")
-        for t in g.tasks_in(p):
-            style = ["rounded"]
-            attrs = [f"label={_dot_str(t.id + chr(10) + _label(t, max_label, with_id=False))}"]
-            if t.parallel:
-                style.append("dashed")
-            if t.done:
-                style.append("filled")
-                attrs.append('fillcolor="#dcfce7"')
-            attrs.append(f"style={_dot_str(','.join(style))}")
-            lines.append(f"    {_dot_str(t.id)} [{', '.join(attrs)}];")
-        lines.append("  }")
+    if isinstance(g, UnitGraph):
+        for u in g.nodes:
+            lines.append(f"  {_dot_node(u, u.id + chr(10) + _trunc(u.title, max_label) + chr(10) + _count(u))}")
+    else:
+        for p in g.phases_with_tasks():
+            lines.append(f"  subgraph {_dot_str('cluster_' + p.id)} {{")
+            lines.append(f"    label={_dot_str(p.name)}; style=rounded; color=\"#cbd5e1\";")
+            for t in g.tasks_in(p):
+                lines.append(f"    {_dot_node(t, t.id + chr(10) + _trunc(t.title, max_label))}")
+            lines.append("  }")
     for a, b, reasons in g.sorted_edges():
         extra = ", style=dashed" if reasons == ["explicit"] else ""
         lines.append(f"  {_dot_str(a)} -> {_dot_str(b)} [tooltip={_dot_str(','.join(reasons))}{extra}];")
@@ -113,21 +156,37 @@ def to_dot(g: Graph, max_label: int = 60) -> str:
     return "\n".join(lines) + "\n"
 
 
-def to_waves_text(g: Graph) -> str:
+def _dot_node(n: Union[Task, Unit], label: str) -> str:
+    style = ["rounded"]
+    attrs = [f"label={_dot_str(label)}"]
+    if getattr(n, "parallel", False):
+        style.append("dashed")
+    if n.status != "todo":
+        style.append("filled")
+        attrs.append('fillcolor="#dcfce7"' if n.status == "done" else 'fillcolor="#fef9c3"')
+    attrs.append(f"style={_dot_str(','.join(style))}")
+    return f"{_dot_str(n.id)} [{', '.join(attrs)}];"
+
+
+_MARK = {"done": "x", "in_progress": "~", "todo": " "}
+
+
+def to_waves_text(g: AnyGraph) -> str:
     out: List[str] = []
     for i, wave in enumerate(waves(g), 1):
         out.append(f"Wave {i}:")
-        for tid in wave:
-            t = g.by_id[tid]
-            out.append(f"  [{'x' if t.done else ' '}] {t.id}  {t.title}")
+        for nid in wave:
+            n = g.by_id[nid]
+            suffix = f"  ({_count(n)})" if isinstance(n, Unit) else ""
+            out.append(f"  [{_MARK[n.status]}] {n.id}  {n.title}{suffix}")
     return "\n".join(out) + "\n"
 
 
-def to_ready_text(g: Graph) -> str:
-    return "".join(f"{tid}\t{g.by_id[tid].title}\n" for tid in ready(g))
+def to_ready_text(g: AnyGraph) -> str:
+    return "".join(f"{nid}\t{g.by_id[nid].title}\n" for nid in ready(g))
 
 
-FORMATS: Dict[str, Callable[[Graph], str]] = {
+FORMATS: Dict[str, Callable[[AnyGraph], str]] = {
     "json": to_json,
     "yaml": to_yaml,
     "mermaid": to_mermaid,
@@ -137,9 +196,15 @@ FORMATS: Dict[str, Callable[[Graph], str]] = {
 }
 
 
-def _label(t: Task, max_len: int, with_id: bool = True) -> str:
-    title = t.title if len(t.title) <= max_len else t.title[: max_len - 1].rstrip() + "…"
-    return f"{t.id} {title}" if with_id else title
+def _count(u: Unit) -> str:
+    n = len(u.tasks)
+    done = sum(t.done for t in u.tasks)
+    text = f"{n} task" + ("s" if n != 1 else "")
+    return f"{text}, {done} done" if done else text
+
+
+def _trunc(text: str, max_len: int) -> str:
+    return text if len(text) <= max_len else text[: max_len - 1].rstrip() + "…"
 
 
 def _safe_id(text: str) -> str:

@@ -1,0 +1,581 @@
+{
+  "version": 1,
+  "unit": "story",
+  "feature": "User Authentication",
+  "source": "examples/tasks.md",
+  "groups": [
+    {
+      "id": "setup",
+      "name": "Phase 1: Setup (Shared Infrastructure)",
+      "kind": "setup",
+      "order": 0,
+      "story": null,
+      "priority": null,
+      "mvp": false
+    },
+    {
+      "id": "foundational",
+      "name": "Phase 2: Foundational (Blocking Prerequisites)",
+      "kind": "foundational",
+      "order": 1,
+      "story": null,
+      "priority": null,
+      "mvp": false
+    },
+    {
+      "id": "US1",
+      "name": "Phase 3: User Story 1 - Sign up with email (Priority: P1) 🎯 MVP",
+      "kind": "story",
+      "order": 2,
+      "story": "US1",
+      "priority": "P1",
+      "mvp": true
+    },
+    {
+      "id": "US2",
+      "name": "Phase 4: User Story 2 - Log in (Priority: P2)",
+      "kind": "story",
+      "order": 3,
+      "story": "US2",
+      "priority": "P2",
+      "mvp": false
+    },
+    {
+      "id": "US3",
+      "name": "Phase 5: User Story 3 - Reset password (Priority: P3)",
+      "kind": "story",
+      "order": 4,
+      "story": "US3",
+      "priority": "P3",
+      "mvp": false
+    },
+    {
+      "id": "polish",
+      "name": "Phase 6: Polish & Cross-Cutting Concerns",
+      "kind": "polish",
+      "order": 5,
+      "story": null,
+      "priority": null,
+      "mvp": false
+    }
+  ],
+  "nodes": [
+    {
+      "id": "setup",
+      "title": "Setup (Shared Infrastructure)",
+      "group": "setup",
+      "kind": "setup",
+      "story": null,
+      "priority": null,
+      "mvp": false,
+      "files": [
+        "pyproject.toml",
+        ".github/workflows/ci.yml"
+      ],
+      "status": "in_progress",
+      "line": 15,
+      "tasks": [
+        {
+          "id": "T001",
+          "title": "Create project structure per implementation plan",
+          "group": "setup",
+          "section": null,
+          "parallel": false,
+          "story": null,
+          "files": [],
+          "status": "done",
+          "line": 17,
+          "tags": []
+        },
+        {
+          "id": "T002",
+          "title": "Configure ruff and black in pyproject.toml",
+          "group": "setup",
+          "section": null,
+          "parallel": true,
+          "story": null,
+          "files": [
+            "pyproject.toml"
+          ],
+          "status": "todo",
+          "line": 18,
+          "tags": []
+        },
+        {
+          "id": "T003",
+          "title": "Add CI workflow in .github/workflows/ci.yml",
+          "group": "setup",
+          "section": null,
+          "parallel": true,
+          "story": null,
+          "files": [
+            ".github/workflows/ci.yml"
+          ],
+          "status": "todo",
+          "line": 19,
+          "tags": []
+        }
+      ]
+    },
+    {
+      "id": "foundational",
+      "title": "Foundational (Blocking Prerequisites)",
+      "group": "foundational",
+      "kind": "foundational",
+      "story": null,
+      "priority": null,
+      "mvp": false,
+      "files": [
+        "src/db/migrations/",
+        "src/lib/crypto.py",
+        "src/lib/logging.py",
+        "src/api/app.py"
+      ],
+      "status": "todo",
+      "line": 23,
+      "tasks": [
+        {
+          "id": "T004",
+          "title": "Set up database schema and migrations in src/db/migrations/",
+          "group": "foundational",
+          "section": null,
+          "parallel": false,
+          "story": null,
+          "files": [
+            "src/db/migrations/"
+          ],
+          "status": "todo",
+          "line": 27,
+          "tags": []
+        },
+        {
+          "id": "T005",
+          "title": "Implement password hashing helpers in src/lib/crypto.py",
+          "group": "foundational",
+          "section": null,
+          "parallel": true,
+          "story": null,
+          "files": [
+            "src/lib/crypto.py"
+          ],
+          "status": "todo",
+          "line": 28,
+          "tags": []
+        },
+        {
+          "id": "T006",
+          "title": "Configure structured logging in src/lib/logging.py",
+          "group": "foundational",
+          "section": null,
+          "parallel": true,
+          "story": null,
+          "files": [
+            "src/lib/logging.py"
+          ],
+          "status": "todo",
+          "line": 29,
+          "tags": []
+        },
+        {
+          "id": "T007",
+          "title": "Create base API router and error handling in src/api/app.py",
+          "group": "foundational",
+          "section": null,
+          "parallel": false,
+          "story": null,
+          "files": [
+            "src/api/app.py"
+          ],
+          "status": "todo",
+          "line": 30,
+          "tags": []
+        }
+      ]
+    },
+    {
+      "id": "US1",
+      "title": "User Story 1 - Sign up with email",
+      "group": "US1",
+      "kind": "story",
+      "story": "US1",
+      "priority": "P1",
+      "mvp": true,
+      "files": [
+        "tests/contract/test_signup.py",
+        "tests/integration/test_signup.py",
+        "src/models/user.py",
+        "src/models/token.py",
+        "src/services/signup.py",
+        "src/api/signup.py"
+      ],
+      "status": "todo",
+      "line": 36,
+      "tasks": [
+        {
+          "id": "T008",
+          "title": "Contract test for POST /signup in tests/contract/test_signup.py",
+          "group": "US1",
+          "section": "tests",
+          "parallel": true,
+          "story": "US1",
+          "files": [
+            "tests/contract/test_signup.py"
+          ],
+          "status": "todo",
+          "line": 42,
+          "tags": []
+        },
+        {
+          "id": "T009",
+          "title": "Integration test for the sign-up flow in tests/integration/test_signup.py",
+          "group": "US1",
+          "section": "tests",
+          "parallel": true,
+          "story": "US1",
+          "files": [
+            "tests/integration/test_signup.py"
+          ],
+          "status": "todo",
+          "line": 43,
+          "tags": []
+        },
+        {
+          "id": "T010",
+          "title": "Create User model in src/models/user.py",
+          "group": "US1",
+          "section": "implementation",
+          "parallel": true,
+          "story": "US1",
+          "files": [
+            "src/models/user.py"
+          ],
+          "status": "todo",
+          "line": 47,
+          "tags": []
+        },
+        {
+          "id": "T011",
+          "title": "Create VerificationToken model in src/models/token.py",
+          "group": "US1",
+          "section": "implementation",
+          "parallel": true,
+          "story": "US1",
+          "files": [
+            "src/models/token.py"
+          ],
+          "status": "todo",
+          "line": 48,
+          "tags": []
+        },
+        {
+          "id": "T012",
+          "title": "Implement SignupService in src/services/signup.py",
+          "group": "US1",
+          "section": "implementation",
+          "parallel": false,
+          "story": "US1",
+          "files": [
+            "src/services/signup.py"
+          ],
+          "status": "todo",
+          "line": 49,
+          "tags": []
+        },
+        {
+          "id": "T013",
+          "title": "Implement POST /signup endpoint in src/api/signup.py",
+          "group": "US1",
+          "section": "implementation",
+          "parallel": false,
+          "story": "US1",
+          "files": [
+            "src/api/signup.py"
+          ],
+          "status": "todo",
+          "line": 50,
+          "tags": []
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "title": "User Story 2 - Log in",
+      "group": "US2",
+      "kind": "story",
+      "story": "US2",
+      "priority": "P2",
+      "mvp": false,
+      "files": [
+        "tests/contract/test_login.py",
+        "src/services/sessions.py",
+        "src/api/login.py"
+      ],
+      "status": "todo",
+      "line": 54,
+      "tasks": [
+        {
+          "id": "T014",
+          "title": "Contract test for POST /login in tests/contract/test_login.py",
+          "group": "US2",
+          "section": "tests",
+          "parallel": true,
+          "story": "US2",
+          "files": [
+            "tests/contract/test_login.py"
+          ],
+          "status": "todo",
+          "line": 58,
+          "tags": []
+        },
+        {
+          "id": "T015",
+          "title": "Implement session store in src/services/sessions.py",
+          "group": "US2",
+          "section": "implementation",
+          "parallel": true,
+          "story": "US2",
+          "files": [
+            "src/services/sessions.py"
+          ],
+          "status": "todo",
+          "line": 62,
+          "tags": []
+        },
+        {
+          "id": "T016",
+          "title": "Implement POST /login endpoint in src/api/login.py",
+          "group": "US2",
+          "section": "implementation",
+          "parallel": false,
+          "story": "US2",
+          "files": [
+            "src/api/login.py"
+          ],
+          "status": "todo",
+          "line": 63,
+          "tags": []
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "title": "User Story 3 - Reset password",
+      "group": "US3",
+      "kind": "story",
+      "story": "US3",
+      "priority": "P3",
+      "mvp": false,
+      "files": [
+        "src/services/reset.py",
+        "src/api/reset.py"
+      ],
+      "status": "todo",
+      "line": 67,
+      "tasks": [
+        {
+          "id": "T017",
+          "title": "Implement reset-token service in src/services/reset.py (depends on T011)",
+          "group": "US3",
+          "section": "implementation",
+          "parallel": true,
+          "story": "US3",
+          "files": [
+            "src/services/reset.py"
+          ],
+          "status": "todo",
+          "line": 71,
+          "tags": []
+        },
+        {
+          "id": "T018",
+          "title": "Implement POST /password-reset endpoint in src/api/reset.py",
+          "group": "US3",
+          "section": "implementation",
+          "parallel": false,
+          "story": "US3",
+          "files": [
+            "src/api/reset.py"
+          ],
+          "status": "todo",
+          "line": 72,
+          "tags": []
+        }
+      ]
+    },
+    {
+      "id": "polish",
+      "title": "Polish & Cross-Cutting Concerns",
+      "group": "polish",
+      "kind": "polish",
+      "story": null,
+      "priority": null,
+      "mvp": false,
+      "files": [
+        "docs/api.md",
+        "src/api/middleware.py",
+        "quickstart.md"
+      ],
+      "status": "todo",
+      "line": 76,
+      "tasks": [
+        {
+          "id": "T019",
+          "title": "Document auth endpoints in docs/api.md",
+          "group": "polish",
+          "section": null,
+          "parallel": true,
+          "story": null,
+          "files": [
+            "docs/api.md"
+          ],
+          "status": "todo",
+          "line": 78,
+          "tags": []
+        },
+        {
+          "id": "T020",
+          "title": "Add rate limiting to auth endpoints in src/api/middleware.py",
+          "group": "polish",
+          "section": null,
+          "parallel": true,
+          "story": null,
+          "files": [
+            "src/api/middleware.py"
+          ],
+          "status": "todo",
+          "line": 79,
+          "tags": []
+        },
+        {
+          "id": "T021",
+          "title": "Run quickstart.md validation",
+          "group": "polish",
+          "section": null,
+          "parallel": false,
+          "story": null,
+          "files": [
+            "quickstart.md"
+          ],
+          "status": "todo",
+          "line": 80,
+          "tags": []
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "setup",
+      "to": "foundational",
+      "reasons": [
+        "phase"
+      ],
+      "via": [
+        {
+          "from": "T002",
+          "to": "T004"
+        },
+        {
+          "from": "T003",
+          "to": "T004"
+        }
+      ]
+    },
+    {
+      "from": "foundational",
+      "to": "US1",
+      "reasons": [
+        "phase"
+      ],
+      "via": [
+        {
+          "from": "T007",
+          "to": "T008"
+        },
+        {
+          "from": "T007",
+          "to": "T009"
+        }
+      ]
+    },
+    {
+      "from": "foundational",
+      "to": "US2",
+      "reasons": [
+        "phase"
+      ],
+      "via": [
+        {
+          "from": "T007",
+          "to": "T014"
+        }
+      ]
+    },
+    {
+      "from": "US1",
+      "to": "US3",
+      "reasons": [
+        "explicit"
+      ],
+      "via": [
+        {
+          "from": "T011",
+          "to": "T017"
+        }
+      ]
+    },
+    {
+      "from": "US2",
+      "to": "polish",
+      "reasons": [
+        "phase"
+      ],
+      "via": [
+        {
+          "from": "T016",
+          "to": "T019"
+        },
+        {
+          "from": "T016",
+          "to": "T020"
+        }
+      ]
+    },
+    {
+      "from": "US3",
+      "to": "polish",
+      "reasons": [
+        "phase"
+      ],
+      "via": [
+        {
+          "from": "T018",
+          "to": "T019"
+        },
+        {
+          "from": "T018",
+          "to": "T020"
+        }
+      ]
+    }
+  ],
+  "waves": [
+    [
+      "setup"
+    ],
+    [
+      "foundational"
+    ],
+    [
+      "US1",
+      "US2"
+    ],
+    [
+      "US3"
+    ],
+    [
+      "polish"
+    ]
+  ],
+  "warnings": []
+}

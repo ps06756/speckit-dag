@@ -61,13 +61,14 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
 
     phase: Optional[Phase] = None
     pending_heading: Optional[str] = None  # a non-"Phase" `##` heading, becomes a phase if tasks follow
+    pending_line: Optional[int] = None
     section: Optional[str] = None
     section_index = 0
     in_fence = False
     last_task: Optional[Task] = None
     last_indent = 0
 
-    def new_phase(name: str, number: Optional[str]) -> Phase:
+    def new_phase(name: str, number: Optional[str], line: Optional[int]) -> Phase:
         kind, story, priority, mvp = _classify(name)
         base = story or (kind if kind != "other" else _slug(name)) or f"phase-{len(phases) + 1}"
         pid, n = base, 2
@@ -83,6 +84,8 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
             story=story,
             priority=priority,
             mvp=mvp,
+            heading=name,
+            line=line,
         )
         phases.append(p)
         return p
@@ -106,13 +109,13 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
 
         m = PHASE_RE.match(line)
         if m:
-            phase = new_phase(m.group("name"), m.group("num"))
+            phase = new_phase(m.group("name"), m.group("num"), lineno)
             pending_heading, section, section_index, last_task = None, None, 0, None
             continue
 
         m = H2_RE.match(line)
         if m:
-            phase, pending_heading = None, m.group("title")
+            phase, pending_heading, pending_line = None, m.group("title"), lineno
             section, section_index, last_task = None, 0, None
             continue
 
@@ -124,7 +127,8 @@ def parse_tasks(text: str, source: Optional[str] = None) -> ParsedDoc:
         m = TASK_RE.match(line)
         if m:
             if phase is None:
-                phase, pending_heading = new_phase(pending_heading or "Tasks", None), None
+                phase = new_phase(pending_heading or "Tasks", None, pending_line)
+                pending_heading = None
             tid = m.group("id")
             if tid in seen_ids:
                 warnings.append(f"line {lineno}: duplicate task id {tid}; keeping the first one")

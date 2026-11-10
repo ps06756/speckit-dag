@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "unit": "task",
   "feature": "User Authentication",
   "source": "examples/tasks.md",
   "groups": [
