@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "speckit-dag"
+version = "0.1.0"
+description = "Build a dependency graph (DAG) from Spec Kit tasks.md files"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["pyyaml>=5.1"]
+dev = ["pytest>=7", "pyyaml>=5.1", "jsonschema>=4"]
+
+[project.scripts]
+speckit-dag = "speckit_dag.cli:main"
+
+[tool.setuptools]
+packages = ["speckit_dag"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

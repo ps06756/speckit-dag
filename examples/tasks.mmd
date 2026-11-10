@@ -1,0 +1,68 @@
+flowchart TD
+  subgraph g_setup["Phase 1: Setup (Shared Infrastructure)"]
+    T001["T001 Create project structure per implementation plan"]
+    T002["T002 Configure ruff and black in pyproject.toml"]
+    T003["T003 Add CI workflow in .github/workflows/ci.yml"]
+  end
+  subgraph g_foundational["Phase 2: Foundational (Blocking Prerequisites)"]
+    T004["T004 Set up database schema and migrations in src/db/migrations/"]
+    T005["T005 Implement password hashing helpers in src/lib/crypto.py"]
+    T006["T006 Configure structured logging in src/lib/logging.py"]
+    T007["T007 Create base API router and error handling in src/api/app.py"]
+  end
+  subgraph g_US1["Phase 3: User Story 1 - Sign up with email (Priority: P1) 🎯 MVP"]
+    T008["T008 Contract test for POST /signup in tests/contract/test_signu…"]
+    T009["T009 Integration test for the sign-up flow in tests/integration/…"]
+    T010["T010 Create User model in src/models/user.py"]
+    T011["T011 Create VerificationToken model in src/models/token.py"]
+    T012["T012 Implement SignupService in src/services/signup.py"]
+    T013["T013 Implement POST /signup endpoint in src/api/signup.py"]
+  end
+  subgraph g_US2["Phase 4: User Story 2 - Log in (Priority: P2)"]
+    T014["T014 Contract test for POST /login in tests/contract/test_login.…"]
+    T015["T015 Implement session store in src/services/sessions.py"]
+    T016["T016 Implement POST /login endpoint in src/api/login.py"]
+  end
+  subgraph g_US3["Phase 5: User Story 3 - Reset password (Priority: P3)"]
+    T017["T017 Implement reset-token service in src/services/reset.py (dep…"]
+    T018["T018 Implement POST /password-reset endpoint in src/api/reset.py"]
+  end
+  subgraph g_polish["Phase 6: Polish & Cross-Cutting Concerns"]
+    T019["T019 Document auth endpoints in docs/api.md"]
+    T020["T020 Add rate limiting to auth endpoints in src/api/middleware.py"]
+    T021["T021 Run quickstart.md validation"]
+  end
+  T001 --> T002
+  T001 --> T003
+  T002 --> T004
+  T003 --> T004
+  T004 --> T005
+  T004 --> T006
+  T005 --> T007
+  T006 --> T007
+  T007 --> T008
+  T007 --> T009
+  T007 --> T014
+  T008 --> T010
+  T008 --> T011
+  T009 --> T010
+  T009 --> T011
+  T010 --> T012
+  T011 --> T012
+  T011 -.-> T017
+  T012 --> T013
+  T013 --> T019
+  T013 --> T020
+  T014 --> T015
+  T015 --> T016
+  T016 --> T019
+  T016 --> T020
+  T017 --> T018
+  T018 --> T019
+  T018 --> T020
+  T019 --> T021
+  T020 --> T021
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d
+  classDef parallel stroke-dasharray:4 3
+  class T001 done
+  class T002,T003,T005,T006,T008,T009,T010,T011,T014,T015,T017,T019,T020 parallel

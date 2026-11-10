@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "speckit-dag task graph",
+  "description": "A tool-neutral task dependency graph. speckit-dag produces it from Spec Kit tasks.md files; other planners can produce it too. Extra fields are allowed so producers can add their own data.",
+  "type": "object",
+  "required": ["version", "nodes", "edges"],
+  "properties": {
+    "version": { "const": 1 },
+    "feature": { "type": ["string", "null"] },
+    "source": { "type": ["string", "null"], "description": "Where the graph came from, e.g. a file path." },
+    "groups": {
+      "type": "array",
+      "description": "Phases or user stories that nodes belong to, in order.",
+      "items": { "$ref": "#/$defs/group" }
+    },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "waves": {
+      "type": "array",
+      "description": "Node ids grouped so every node in a wave can run at the same time once earlier waves are done.",
+      "items": { "type": "array", "items": { "type": "string" } }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "group": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "kind": { "type": "string", "description": "setup | foundational | story | polish | other" },
+        "order": { "type": "integer", "minimum": 0 },
+        "story": { "type": ["string", "null"] },
+        "priority": { "type": ["string", "null"] },
+        "mvp": { "type": "boolean" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "group": { "type": ["string", "null"] },
+        "section": { "type": ["string", "null"] },
+        "parallel": { "type": "boolean", "description": "Marked as safe to run alongside its siblings." },
+        "story": { "type": ["string", "null"] },
+        "files": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "description": "todo | done (producers may add others)" },
+        "line": { "type": ["integer", "null"], "minimum": 1 },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to"],
+      "description": "`to` depends on `from`: `from` must finish first.",
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "reasons": {
+          "type": "array",
+          "description": "Why the edge exists: explicit | phase | section | sequence | file",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}
